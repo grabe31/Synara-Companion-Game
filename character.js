@@ -8,7 +8,7 @@ class Character {
         this.currentClass = playerData.currentClass;
         this.level = playerData.level;
        // this.classCode = playerData.classCode;
-        this.classCode = "WF";
+        this.classCode = "FB";
         this.hp = playerData.hp;
         this.currentXP = playerData.currentXP;
         this.attack = playerData.attack;
@@ -20,9 +20,9 @@ class Character {
         this.y = COLS * TILE_SIZE / 2;
         this.w = 48
         this.h = 48
-        //this.attackType = playerData.attackType;
-        this.attackType = "P";
-        this.projectileColor = this.getProjectileColor();
+        this.attackType = playerData.attackType;
+        //this.attackType = "P";
+        this.attackColor = this.getAttackColor();
         console.log(this.attackType);
 
         this.maxHP = map(this.hp, 0, 99, 20, 120); //units
@@ -44,7 +44,6 @@ class Character {
         }
 
         this.arc = map(this.dexterity, 0, 99, 30, 120)
-
         this.mouseAngle = 0;
         this.startAngle = 0;
         this.stopAngle = 0;
@@ -82,10 +81,14 @@ class Character {
         console.log("=======================");
     }
 
-    display() {
-        this.appearance.display();
-       
+   display() {
+    this.appearance.display();
+
+    if (this.flashAttackTimer > 0) {
+        this.displayAttackArc();
+        this.flashAttackTimer--;
     }
+}
 
     
     resetAttackTimer() {
@@ -93,24 +96,84 @@ class Character {
     }
 
 
-    displayAttackArc() {
-        //attack arc
+   displayAttackArc() {
+    push();
 
-        noFill();
-        stroke(255, 255, 0);
-        strokeWeight(4);
-        fill(0, 255, 255, 60);   // semi-transparent white
-        stroke('cyan');
-        arc(
-            this.x - cameraX,
-            this.y - cameraY,
-            this.range * 2,
-            this.range * 2,
-            this.stopAngle, //start and stop angle swapped not sure why but it works
-            this.startAngle
-        );
-    }
+    noFill();
+    strokeCap(ROUND);
 
+    // flashAttackTimer starts at 8 and counts down to 0.
+    // This gives us 1.0 at the beginning and 0.0 at the end.
+    let life = this.flashAttackTimer / 8;
+
+    // Fade the whole slash as it disappears.
+    let mainAlpha = 255 * life;
+    let trailAlpha = 120 * life;
+    let faintAlpha = 55 * life;
+
+    // Make copies of the player's attack color
+    // so we can change the transparency.
+    let mainColor = color(this.attackColor);
+    let trailColor = color(this.attackColor);
+    let faintColor = color(this.attackColor);
+
+    mainColor.setAlpha(mainAlpha);
+    trailColor.setAlpha(trailAlpha);
+    faintColor.setAlpha(faintAlpha);
+
+    let screenX = this.x - cameraX;
+    let screenY = this.y - cameraY;
+
+    //==============================
+    // OUTER MOTION TRAIL
+    //==============================
+
+    stroke(faintColor);
+    strokeWeight(7);
+
+    arc(
+        screenX,
+        screenY,
+        this.range * 2.05,
+        this.range * 2.05,
+        this.stopAngle,
+        this.startAngle
+    );
+
+    //==============================
+    // MIDDLE TRAIL
+    //==============================
+
+    stroke(trailColor);
+    strokeWeight(5);
+
+    arc(
+        screenX,
+        screenY,
+        this.range * 1.90,
+        this.range * 1.90,
+        this.stopAngle,
+        this.startAngle
+    );
+
+    //==============================
+    // BRIGHT WEAPON EDGE
+    //==============================
+
+    stroke(mainColor);
+    strokeWeight(2);
+
+    arc(
+        screenX,
+        screenY,
+        this.range * 1.75,
+        this.range * 1.75,
+        this.stopAngle,
+        this.startAngle
+    );
+
+    pop();
+}
     move(dx, dy) {
 
         this.x += dx;
@@ -138,7 +201,7 @@ class Character {
         this.currentHP -= damage;
     }
 
- getProjectileColor() {
+ getAttackColor() {
     switch (this.classCode) {
 
         case "EL":
@@ -149,6 +212,15 @@ class Character {
 
         case "WF":
             return color(205, 215, 225);  // Wayfinder silver
+
+        case "GR":
+            return color(40, 220, 235);   // Ghostrunner cyan
+
+        case "FB":
+            return color(255, 125, 25);   // Forgeborn orange
+
+        case "LU":
+            return color(35, 83, 165);    // Luminary sapphire
 
         default:
             return color(255);

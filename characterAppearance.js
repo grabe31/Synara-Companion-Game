@@ -3344,10 +3344,6 @@ rect(2, 30, 5, 2);
         fill(orangeBright);
         ellipse(0, -24, 2, 2);
 
-        // TEMP COLOR TEST
-fill(orangeBright);
-rectMode(CENTER);
-rect(48, -35, 12, 12);
 }
     
 

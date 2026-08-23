@@ -70,7 +70,7 @@ function setup() {
     rectMode(CENTER);
     imageMode(CENTER);
     for (let i = 0; i < 5; i++) {
-        let enemy = new Enemy(random(COLS * TILE_SIZE), random(ROWS * TILE_SIZE));
+        let enemy = new Enemy(random(COLS * TILE_SIZE), random(ROWS * TILE_SIZE), "WS");
         enemyArray.push(enemy);
     }
 
@@ -104,12 +104,11 @@ function draw() {
             playerCharacter.move(playerCharacter.moveSpeed, 0);
         }
 
-       // playerCharacter.display();
        playerCharacter.display();
         playerCharacter.update();
         for (let enemy of enemyArray) {
             enemy.display();
-           // enemy.update(playerCharacter);
+            //enemy.update(playerCharacter);
             hitDetectMelee(playerCharacter, enemy);
         }
         for (let p of projectileArray) {
@@ -171,13 +170,13 @@ function mousePressed() {
     if (playerCharacter.attackReady) {
         playerCharacter.resetAttackTimer();
         if (playerCharacter.attackType == "M") {
-            playerCharacter.flashAttackTimer = 6;
+            playerCharacter.flashAttackTimer = 8;
             for (let enemy of enemyArray) {
                 playerAttack(enemy, playerCharacter);
             }
         }
         else {
-            let p = new Projectile(playerCharacter, mouseX, mouseY, playerCharacter.projectileColor)
+            let p = new Projectile(playerCharacter, mouseX, mouseY, playerCharacter.attackColor)
             projectileArray.push(p);
         }
     }

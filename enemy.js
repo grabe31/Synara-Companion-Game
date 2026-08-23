@@ -1,7 +1,8 @@
 class Enemy {
-    constructor(x, y) {
+    constructor(x, y, enemyCode) {
         this.x = x;
         this.y = y;
+        this.enemyCode = enemyCode;
         this.w = 20;
         this.h = 20;
         this.maxHP = 200;
@@ -15,6 +16,7 @@ class Enemy {
         this.critChance = 0.05;
         this.dead = false;
         this.team = "monster";
+        this.appearance = new EnemyAppearance(this);
 
 
     }
@@ -22,20 +24,22 @@ class Enemy {
         this.attackTime = millis();
     }
 
-    display() {
-        let screenX = this.x - cameraX;
-        let screenY = this.y - cameraY;
+   display() {
+    this.appearance.display();
+    let screenX = this.x - cameraX;
+    let screenY = this.y - cameraY;
 
-        fill("red");
-        stroke("red");
-        strokeWeight(1);
-        rect(screenX, screenY, this.w, this.h);
+ //==============================
+    // HP DISPLAY
+    //==============================
 
+    noStroke();
+    fill(100);
+    textSize(10);
+    textAlign(CENTER);
+    text(round(this.currentHP), screenX, screenY - 42);
 
-        noStroke();
-        textSize(10);
-        text(round(this.currentHP), screenX - 25, screenY - 25);
-    }
+}
     update(target) {
         if (this.currentHP <= 0) {
             this.dead = true;
