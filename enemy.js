@@ -3,17 +3,9 @@ class Enemy {
         this.x = x;
         this.y = y;
         this.enemyCode = enemyCode;
-        this.w = 20;
-        this.h = 20;
-        this.maxHP = 200;
-        this.currentHP = this.maxHP;
-        this.attackDamage = 1;
-        this.moveSpeed = 1
-        this.damageReduction = 0.01;
-        this.cooldown = 1500;
+        this.setEnemyStats();
         this.attackTime = millis();
         this.attackReady = false;
-        this.critChance = 0.05;
         this.dead = false;
         this.team = "monster";
         this.appearance = new EnemyAppearance(this);
@@ -65,8 +57,51 @@ class Enemy {
         this.attackReady = millis() > this.attackTime + this.cooldown;
     }
 
-    takeDamage(damage) {
+   takeDamage(damage) {
+    let actualDamage = damage * (1 - this.damageReduction);
+    this.currentHP -= actualDamage;
+}
 
-        this.currentHP -= damage;
+   setEnemyStats() {
+    switch (this.enemyCode) {
+
+        case "BT":
+            // Beetle — tank
+            this.w = 32;
+            this.h = 28;
+            this.maxHP = random(200, 251);
+            this.attackDamage = 3;
+            this.moveSpeed = 0.55;
+            this.damageReduction = 0.08;
+            this.cooldown = 2200;
+            this.critChance = 0.03;
+            break;
+
+        case "RC":
+            // Roach — baseline
+            this.w = 22;
+            this.h = 28;
+            this.maxHP = random(100, 151);
+            this.attackDamage = 2;
+            this.moveSpeed = 1;
+            this.damageReduction = 0.02;
+            this.cooldown = 1500;
+            this.critChance = 0.05;
+            break;
+
+        case "WS":
+            // Water Strider — fast / fragile
+            this.w = 14;
+            this.h = 18;
+            this.maxHP = random(50, 76);
+            this.attackDamage = 1;
+            this.moveSpeed = 1.65;
+            this.damageReduction = 0;
+            this.cooldown = 800;
+            this.critChance = 0.08;
+            break;
     }
+
+    this.currentHP = floor(this.maxHP);
+}
 }

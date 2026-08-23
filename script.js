@@ -68,10 +68,14 @@ function setup() {
     createCanvas(width, height);
     loadSpreadsheet();
     rectMode(CENTER);
-    imageMode(CENTER);
+    textAlign(CENTER);
     for (let i = 0; i < 5; i++) {
         let enemy = new Enemy(random(COLS * TILE_SIZE), random(ROWS * TILE_SIZE), "WS");
         enemyArray.push(enemy);
+          let enemy2 = new Enemy(random(COLS * TILE_SIZE), random(ROWS * TILE_SIZE), "RC");
+        enemyArray.push(enemy2);
+          let enemy3 = new Enemy(random(COLS * TILE_SIZE), random(ROWS * TILE_SIZE), "BT");
+        enemyArray.push(enemy3);
     }
 
     angleMode(DEGREES);
@@ -86,8 +90,7 @@ function draw() {
         fill("white")
         stroke("black")
         textSize(20);
-        text(round(playerCharacter.currentHP), 50, 50);
-
+displayPlayerHP();
         if (keyIsDown(87)) { // W
             playerCharacter.move(0, -playerCharacter.moveSpeed);
         }
@@ -108,7 +111,7 @@ function draw() {
         playerCharacter.update();
         for (let enemy of enemyArray) {
             enemy.display();
-            //enemy.update(playerCharacter);
+            enemy.update(playerCharacter);
             hitDetectMelee(playerCharacter, enemy);
         }
         for (let p of projectileArray) {
@@ -224,6 +227,31 @@ function screenX(worldX) {
 
 function screenY(worldY) {
     return worldY - cameraY;
+}
+
+function displayPlayerHP() {
+
+    //==============================
+    // HP DISPLAY
+    //==============================
+
+    push();
+
+    textAlign(LEFT, CENTER);
+    textSize(18);
+    textStyle(BOLD);
+
+    fill(0, 180);
+    noStroke();
+    rect(61, 40, 70, 40, 6);
+
+    fill(playerCharacter.attackColor);
+    text("HP", 32, 40);
+
+    fill(255);
+    text(round(playerCharacter.currentHP), 70, 40);
+
+    pop();
 }
 
 // function keyPressed(){
