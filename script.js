@@ -51,7 +51,7 @@ async function loadSpreadsheet() {
         dexterity: firstPlayer[26],
         luck: firstPlayer[27],
         attackType: firstPlayer[15],
-        range: null,
+        attackRange: null,
         arc: null
     };
 
@@ -72,10 +72,10 @@ function setup() {
     for (let i = 0; i < 5; i++) {
         let enemy = new Enemy(random(COLS * TILE_SIZE), random(ROWS * TILE_SIZE), "WS");
         enemyArray.push(enemy);
-          let enemy2 = new Enemy(random(COLS * TILE_SIZE), random(ROWS * TILE_SIZE), "RC");
-        enemyArray.push(enemy2);
-          let enemy3 = new Enemy(random(COLS * TILE_SIZE), random(ROWS * TILE_SIZE), "BT");
-        enemyArray.push(enemy3);
+        //   let enemy2 = new Enemy(random(COLS * TILE_SIZE), random(ROWS * TILE_SIZE), "RC");
+        // enemyArray.push(enemy2);
+        //   let enemy3 = new Enemy(random(COLS * TILE_SIZE), random(ROWS * TILE_SIZE), "BT");
+        // enemyArray.push(enemy3);
     }
 
     angleMode(DEGREES);
@@ -90,7 +90,8 @@ function draw() {
         fill("white")
         stroke("black")
         textSize(20);
-displayPlayerHP();
+        displayPlayerHP();
+        console.log("Enemies:", enemyArray.length);
         if (keyIsDown(87)) { // W
             playerCharacter.move(0, -playerCharacter.moveSpeed);
         }
@@ -112,7 +113,9 @@ displayPlayerHP();
         for (let enemy of enemyArray) {
             enemy.display();
             enemy.update(playerCharacter);
+            let distance = dist(enemy.x, enemy.y, playerCharacter.x, playerCharacter.y)
             hitDetectMelee(playerCharacter, enemy);
+            
         }
         for (let p of projectileArray) {
             p.display();
@@ -161,7 +164,7 @@ function playerAttack(defender, attacker) {
         angleDifference = 360 - angleDifference;
     }
 
-    if (angleDifference <= attacker.arc / 2 && dist(attacker.x, attacker.y, defender.x, defender.y) < attacker.range) {
+    if (angleDifference <= attacker.arc / 2 && dist(attacker.x, attacker.y, defender.x, defender.y) < attacker.attackRange) {
         defender.takeDamage(calculateDamage(defender, attacker));
     }
 
@@ -196,7 +199,7 @@ function calculateDamage(defender, attacker) {
 
 function checkGameOver() {
     if (playerCharacter.currentHP <= 0) {
-        fill("white");
+        fill(playerCharacter.attackColor);
         stroke("black");
         textSize(25);
         text("You Lose", width / 2, height / 2);
@@ -206,7 +209,7 @@ function checkGameOver() {
 
 
 function hitDetectMelee(defender, attacker) {
-    if (dist(defender.x, defender.y, attacker.x, attacker.y) <= 20 && attacker.attackReady) {
+    if (dist(defender.x, defender.y, attacker.x, attacker.y) <= defender.radius + attacker.attackRange && attacker.attackReady) {
         defender.takeDamage(calculateDamage(defender, attacker));
         attacker.resetAttackTimer();
         checkGameOver();
@@ -241,14 +244,12 @@ function displayPlayerHP() {
     textSize(18);
     textStyle(BOLD);
 
-    fill(0, 180);
+    fill(playerCharacter.attackColor);
     noStroke();
     rect(61, 40, 70, 40, 6);
 
-    fill(playerCharacter.attackColor);
+    fill(230);
     text("HP", 32, 40);
-
-    fill(255);
     text(round(playerCharacter.currentHP), 70, 40);
 
     pop();

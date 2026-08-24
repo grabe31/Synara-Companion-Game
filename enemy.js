@@ -53,15 +53,54 @@ class Enemy {
             this.x = constrain(this.x, 0, WORLD_WIDTH);
             this.y = constrain(this.y, 0, WORLD_HEIGHT);
         }
-
+        this.separateFromEnemies();
         this.attackReady = millis() > this.attackTime + this.cooldown;
     }
 
-   takeDamage(damage) {
-    let actualDamage = damage * (1 - this.damageReduction);
-    this.currentHP -= actualDamage;
+    separateFromEnemies() {
+
+    for (let other of enemyArray) {
+
+        if (other === this) {
+            continue;
+        }
+
+        let dx = this.x - other.x;
+        let dy = this.y - other.y;
+
+        let distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Approximate collision radius using enemy width.
+        let myRadius = this.w / 2 + this.seperationPadding;
+        let otherRadius = other.w / 2 + other.seperationPadding;
+
+        let minDistance = myRadius + otherRadius;
+
+        // Prevent divide-by-zero if two bugs are exactly stacked.
+        if (distance === 0) {
+            dx = random(-1, 1);
+            dy = random(-1, 1);
+            distance = 1;
+        }
+
+        if (distance < minDistance) {
+
+            let overlap = minDistance - distance;
+
+            // Normalize direction.
+            let pushX = dx / distance;
+            let pushY = dy / distance;
+
+            // Each enemy handles half of the separation.
+            this.x += pushX * overlap * 0.5;
+            this.y += pushY * overlap * 0.5;
+        }
+    }
 }
 
+   takeDamage(damage) {
+    this.currentHP -= damage;
+}
    setEnemyStats() {
     switch (this.enemyCode) {
 
@@ -75,6 +114,9 @@ class Enemy {
             this.damageReduction = 0.08;
             this.cooldown = 2200;
             this.critChance = 0.03;
+            this.seperationPadding = 10;
+            this.attackRange = 40;
+            this.radius = 22;
             break;
 
         case "RC":
@@ -87,6 +129,10 @@ class Enemy {
             this.damageReduction = 0.02;
             this.cooldown = 1500;
             this.critChance = 0.05;
+            this.seperationPadding = 8;
+            this.attackRange = 34;
+            this.radius = 16;
+
             break;
 
         case "WS":
@@ -99,6 +145,10 @@ class Enemy {
             this.damageReduction = 0;
             this.cooldown = 800;
             this.critChance = 0.08;
+            this.seperationPadding = 14;
+            this.attackRange = 44;
+            this.radius = 10;
+
             break;
     }
 

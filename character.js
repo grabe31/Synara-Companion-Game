@@ -8,7 +8,7 @@ class Character {
         this.currentClass = playerData.currentClass;
         this.level = playerData.level;
        // this.classCode = playerData.classCode;
-        this.classCode = "LU";
+        this.classCode = "FB";
         this.hp = playerData.hp;
         this.currentXP = playerData.currentXP;
         this.attack = playerData.attack;
@@ -33,13 +33,13 @@ class Character {
         this.attackCoolDown = map(this.dexterity, 0, 99, 1200, 350); //frames
         this.critChance = map(this.luck, 0, 99, 0.02, 0.30); //fractional
         this.appearance = new CharacterAppearance(this);
-
+        this.radius = 18;
 
         if (this.attackType == "M") {
-            this.range = map(this.dexterity, 0, 99, 50, 90);
+            this.attackRange = map(this.dexterity, 0, 99, 50, 90);
         }
         else {
-            this.range = map(this.dexterity, 0, 99, 180, 300);
+            this.attackRange = map(this.dexterity, 0, 99, 180, 300);
 
         }
 
@@ -51,7 +51,7 @@ class Character {
         this.attackTime = millis();
         this.attackReady = false;
         this.team = "player";
-        this.cleanseRadius = 90;
+        this.cleanseRadius = 120;
         this.appearance = new CharacterAppearance(this);
 
     }
@@ -73,7 +73,7 @@ class Character {
         console.log("Defense: " + this.damageReduction);
         console.log("Speed: " + this.moveSpeed);
         console.log("CoolDown: " + this.attackCoolDown);
-        console.log("Range: " + this.range);
+        console.log("Range: " + this.attackRange);
         console.log("Arc: " + this.arc);
         console.log("Luck: " + this.critChance);
 
@@ -96,30 +96,29 @@ class Character {
     }
 
 
-   displayAttackArc() {
+  displayAttackArc() {
     push();
 
     noFill();
     strokeCap(ROUND);
 
     // flashAttackTimer starts at 8 and counts down to 0.
-    // This gives us 1.0 at the beginning and 0.0 at the end.
     let life = this.flashAttackTimer / 8;
 
-    // Fade the whole slash as it disappears.
+    // Fade the slash as it disappears.
     let mainAlpha = 255 * life;
     let trailAlpha = 120 * life;
     let faintAlpha = 55 * life;
 
-    // Make copies of the player's attack color
-    // so we can change the transparency.
-    let mainColor = color(this.attackColor);
-    let trailColor = color(this.attackColor);
-    let faintColor = color(this.attackColor);
+    // Read the permanent attack color.
+    let attackR = red(this.attackColor);
+    let attackG = green(this.attackColor);
+    let attackB = blue(this.attackColor);
 
-    mainColor.setAlpha(mainAlpha);
-    trailColor.setAlpha(trailAlpha);
-    faintColor.setAlpha(faintAlpha);
+    // Create temporary transparent colors.
+    let mainColor = color(attackR, attackG, attackB, mainAlpha);
+    let trailColor = color(attackR, attackG, attackB, trailAlpha);
+    let faintColor = color(attackR, attackG, attackB, faintAlpha);
 
     let screenX = this.x - cameraX;
     let screenY = this.y - cameraY;
@@ -130,15 +129,7 @@ class Character {
 
     stroke(faintColor);
     strokeWeight(7);
-
-    arc(
-        screenX,
-        screenY,
-        this.range * 2.05,
-        this.range * 2.05,
-        this.stopAngle,
-        this.startAngle
-    );
+    arc(screenX, screenY, this.attackRange * 2.05, this.attackRange * 2.05, this.stopAngle, this.startAngle);
 
     //==============================
     // MIDDLE TRAIL
@@ -146,15 +137,7 @@ class Character {
 
     stroke(trailColor);
     strokeWeight(5);
-
-    arc(
-        screenX,
-        screenY,
-        this.range * 1.90,
-        this.range * 1.90,
-        this.stopAngle,
-        this.startAngle
-    );
+    arc(screenX, screenY, this.attackRange * 1.90, this.attackRange * 1.90, this.stopAngle, this.startAngle);
 
     //==============================
     // BRIGHT WEAPON EDGE
@@ -162,15 +145,7 @@ class Character {
 
     stroke(mainColor);
     strokeWeight(2);
-
-    arc(
-        screenX,
-        screenY,
-        this.range * 1.75,
-        this.range * 1.75,
-        this.stopAngle,
-        this.startAngle
-    );
+    arc(screenX, screenY, this.attackRange * 1.75, this.attackRange * 1.75, this.stopAngle, this.startAngle);
 
     pop();
 }
@@ -211,7 +186,7 @@ class Character {
             return color(180, 70, 210);   // Hexcaster purple
 
         case "WF":
-            return color(205, 215, 225);  // Wayfinder silver
+            return color(35, 110, 65);  // Wayfinder silver
 
         case "GR":
             return color(40, 220, 235);   // Ghostrunner cyan
