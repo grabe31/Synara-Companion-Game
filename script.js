@@ -1,3 +1,4 @@
+let canvas;
 let playerCharacter;
 let testEnemy;
 let statModifier
@@ -42,7 +43,7 @@ async function loadSpreadsheet() {
 }
 
 function setup() {
-    createCanvas(width, height);
+    canvas = createCanvas(width, height);
     loadSpreadsheet();
     rectMode(CENTER);
     textAlign(CENTER);
@@ -65,6 +66,11 @@ function setup() {
 
 function draw() {
     background(30);
+
+    if (gameState === "LOGIN") {
+    displayLoginScreen();
+    return;
+}
 
     if (playerCharacter !== undefined) { //player movement
         updateCamera();
@@ -295,6 +301,16 @@ statModifier.buildPlayerStats(playerCharacter);
 codeInput.hide();
 loginButton.hide();
 startGame();
+}
+
+function displayLoginScreen() {
+    background(15);
+
+    // Eventually:
+    // Archive title
+    // emblem/logo
+    // atmospheric background
+    // instructions
 }
 
 function startGame() {
