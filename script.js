@@ -3,9 +3,14 @@ let testEnemy;
 let statModifier
 let enemyArray = [];
 let projectileArray = [];
+let characterRows = [];
 let corruption;
 let cameraX = 0;
 let cameraY = 0;
+let gameState = "LOGIN";
+
+let codeInput;
+let loginButton;
 
 const width = 960
 const height = 540
@@ -25,7 +30,7 @@ async function loadSpreadsheet() {
     const csvText = await response.text();
     const csvText2 = await response2.text();
 
-    const rows = csvText.trim().split("\n");
+    characterRows = csvText.trim().split("\n");
     const rows2 = csvText2.trim().split("\n");
 
     const cleanRows = rows2.map(function (row) {
@@ -33,35 +38,7 @@ async function loadSpreadsheet() {
     });
 
     statModifier = new StatModifier(cleanRows);
-
-    const firstPlayer = rows[1].split(",");
-    const player = {
-        loginCode: firstPlayer[0],
-        studentName: firstPlayer[1],
-        characterName: firstPlayer[2],
-        classCode: firstPlayer[3],
-        currentClass: firstPlayer[4],
-        level: firstPlayer[5],
-        currentXP: firstPlayer[6],
-
-        hp: firstPlayer[22],
-        attack: firstPlayer[23],
-        defense: firstPlayer[24],
-        speed: firstPlayer[25],
-        dexterity: firstPlayer[26],
-        luck: firstPlayer[27],
-        attackType: firstPlayer[15],
-        attackRange: null,
-        arc: null
-    };
-
-
-    playerCharacter = new Character(player);
-    //console.log(playerCharacter);
-    statModifier.buildPlayerStats(playerCharacter);
-    corruption = new CorruptionMap();
-
-    //  playerCharacter.printCharacterSheet();
+    
 }
 
 function setup() {
@@ -69,16 +46,21 @@ function setup() {
     loadSpreadsheet();
     rectMode(CENTER);
     textAlign(CENTER);
+    angleMode(DEGREES);
+
     for (let i = 0; i < 5; i++) {
-        let enemy = new Enemy(random(COLS * TILE_SIZE), random(ROWS * TILE_SIZE), "WS");
-        enemyArray.push(enemy);
-        //   let enemy2 = new Enemy(random(COLS * TILE_SIZE), random(ROWS * TILE_SIZE), "RC");
-        // enemyArray.push(enemy2);
+       // let enemy = new Enemy(random(COLS * TILE_SIZE), random(ROWS * TILE_SIZE), "WS");
+        //enemyArray.push(enemy);
+           let enemy2 = new Enemy(random(COLS * TILE_SIZE), random(ROWS * TILE_SIZE), "RC");
+         enemyArray.push(enemy2);
         //   let enemy3 = new Enemy(random(COLS * TILE_SIZE), random(ROWS * TILE_SIZE), "BT");
         // enemyArray.push(enemy3);
     }
+    codeInput = createInput("");
+    codeInput.attribute("placeholder", "Enter 6-character code");
 
-    angleMode(DEGREES);
+    loginButton = createButton("Enter Archive");
+    loginButton.mousePressed(checkLoginCode);
 }
 
 function draw() {
@@ -173,6 +155,9 @@ function playerAttack(defender, attacker) {
 
 
 function mousePressed() {
+    if(gameState != "GAME"){
+        return;
+    }
     if (playerCharacter.attackReady) {
         playerCharacter.resetAttackTimer();
         if (playerCharacter.attackType == "M") {
@@ -255,6 +240,67 @@ function displayPlayerHP() {
     pop();
 }
 
+function checkLoginCode() {
+    let enteredCode = codeInput.value().trim().toUpperCase();
+
+    if (enteredCode.length !== 6) {
+        console.log("Invalid code length");
+        return;
+    }
+
+    let matchingRow = null;
+
+    for (let i = 1; i < characterRows.length; i++) {
+        let rowData = characterRows[i].split(",");
+        let rowCode = rowData[0].trim().toUpperCase();
+
+        if (rowCode === enteredCode) {
+            matchingRow = rowData;
+            break;
+        }
+    }
+
+    if (matchingRow === null) {
+        console.log("Code not found");
+        return;
+    }
+
+    console.log("Character found:", matchingRow);
+
+    const player = {
+    loginCode: matchingRow[0],
+    studentName: matchingRow[1],
+    characterName: matchingRow[2],
+    classCode: matchingRow[3],
+
+    currentClass: matchingRow[4],
+    level: matchingRow[5],
+    currentXP: matchingRow[6],
+
+    hp: matchingRow[22],
+    attack: matchingRow[23],
+    defense: matchingRow[24],
+    speed: matchingRow[25],
+    dexterity: matchingRow[26],
+    luck: matchingRow[27],
+
+    attackType: matchingRow[15],
+    attackRange: null,
+    arc: null
+};
+
+playerCharacter = new Character(player);
+statModifier.buildPlayerStats(playerCharacter);
+//playerCharacter.printCharacterSheet();
+codeInput.hide();
+loginButton.hide();
+startGame();
+}
+
+function startGame() {
+    corruption = new CorruptionMap();
+    gameState = "GAME";
+}
 // function keyPressed(){
 //     if(key == 'w'){
 //         playerCharacter.move(0, -10);

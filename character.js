@@ -7,8 +7,8 @@ class Character {
         this.characterName = playerData.characterName;
         this.currentClass = playerData.currentClass;
         this.level = playerData.level;
-       // this.classCode = playerData.classCode;
-        this.classCode = "FB";
+        this.classCode = playerData.classCode;
+        //this.classCode = "EL";
         this.hp = playerData.hp;
         this.currentXP = playerData.currentXP;
         this.attack = playerData.attack;
