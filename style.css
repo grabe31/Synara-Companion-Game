@@ -11,3 +11,37 @@ body {
 canvas {
     margin-top: 30px;
 }
+
+input {
+    margin-top: -140px;
+    width: 180px;
+    height: 30px;
+    text-align: center;
+    font-size: 16px;
+    letter-spacing: 2px;
+
+    background-color: #171b22;
+    color: white;
+
+    border: 1px solid #5aaec8;
+    border-radius: 4px;
+}
+
+button {
+    margin-top: 10px;
+    width: 140px;
+    height: 34px;
+
+    background-color: #245b73;
+    color: white;
+
+    border: 1px solid #70c4df;
+    border-radius: 4px;
+
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #327791;
+}

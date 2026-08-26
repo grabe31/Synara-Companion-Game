@@ -9,9 +9,10 @@ let corruption;
 let cameraX = 0;
 let cameraY = 0;
 let gameState = "LOGIN";
-
+let loginMessage = "";
 let codeInput;
 let loginButton;
+let dataLoaded;
 
 const width = 960
 const height = 540
@@ -39,6 +40,7 @@ async function loadSpreadsheet() {
     });
 
     statModifier = new StatModifier(cleanRows);
+    dataLoaded = true;
     
 }
 
@@ -50,15 +52,20 @@ function setup() {
     angleMode(DEGREES);
 
     for (let i = 0; i < 5; i++) {
-       // let enemy = new Enemy(random(COLS * TILE_SIZE), random(ROWS * TILE_SIZE), "WS");
+       let enemy = new Enemy(random(COLS * TILE_SIZE), random(ROWS * TILE_SIZE), "WS");
         //enemyArray.push(enemy);
            let enemy2 = new Enemy(random(COLS * TILE_SIZE), random(ROWS * TILE_SIZE), "RC");
-         enemyArray.push(enemy2);
-        //   let enemy3 = new Enemy(random(COLS * TILE_SIZE), random(ROWS * TILE_SIZE), "BT");
+        // enemyArray.push(enemy2);
+           let enemy3 = new Enemy(random(COLS * TILE_SIZE), random(ROWS * TILE_SIZE), "BT");
         // enemyArray.push(enemy3);
     }
-    codeInput = createInput("");
-    codeInput.attribute("placeholder", "Enter 6-character code");
+    codeInput = createInput("t2e7b9");
+   // codeInput.attribute("placeholder", "Enter 6-character code");
+    codeInput.input(function() {
+    loginMessage = "";
+});
+
+    
 
     loginButton = createButton("Enter Archive");
     loginButton.mousePressed(checkLoginCode);
@@ -74,9 +81,11 @@ function draw() {
 
     if (playerCharacter !== undefined) { //player movement
         updateCamera();
+        drawArenaFloor();
         corruption.displayZones();
-        fill("white")
-        stroke("black")
+        corruption.updateCore(playerCharacter);
+        fill("white");
+        stroke("black");
         textSize(20);
         displayPlayerHP();
         console.log("Enemies:", enemyArray.length);
@@ -247,12 +256,17 @@ function displayPlayerHP() {
 }
 
 function checkLoginCode() {
+    if (!dataLoaded) {
+    loginMessage = "Archive data is still synchronizing. Try again in a moment.";
+    return;
+}
+
     let enteredCode = codeInput.value().trim().toUpperCase();
 
-    if (enteredCode.length !== 6) {
-        console.log("Invalid code length");
-        return;
-    }
+   if (enteredCode.length !== 6) {
+    loginMessage = "Archive Codes must contain 6 characters.";
+    return;
+}
 
     let matchingRow = null;
 
@@ -265,11 +279,13 @@ function checkLoginCode() {
             break;
         }
     }
-
-    if (matchingRow === null) {
-        console.log("Code not found");
+      if (matchingRow === null) {
+        loginMessage = "Archive Code not recognized. Check your code and try again.";
         return;
     }
+
+
+    loginMessage = "";
 
     console.log("Character found:", matchingRow);
 
@@ -304,30 +320,148 @@ startGame();
 }
 
 function displayLoginScreen() {
-    background(15);
 
-    // Eventually:
-    // Archive title
-    // emblem/logo
-    // atmospheric background
-    // instructions
+    //==============================
+    // BACKGROUND
+    //==============================
+
+    background(12, 14, 18);
+
+    //==============================
+    // TITLE
+    //==============================
+
+    fill(235);
+    textAlign(CENTER);
+    textStyle(BOLD);
+    textSize(34);
+
+    text("THE ARCHIVE OF SYNARA", width / 2, 110);
+
+    //==============================
+    // SUBTITLE
+    //==============================
+
+    textStyle(NORMAL);
+    textSize(16);
+    fill(150);
+
+    text(
+        "Archive synchronization required",
+        width / 2,
+        145
+    );
+
+    //==============================
+    // ARCHIVE SYMBOL
+    //==============================
+
+    noFill();
+    stroke(80, 180, 220);
+    strokeWeight(3);
+
+    ellipse(width / 2, 245, 110, 110);
+    ellipse(width / 2, 245, 75, 75);
+
+    line(width / 2 - 55, 245, width / 2 + 55, 245);
+    line(width / 2, 190, width / 2, 300);
+
+    noStroke();
+
+    //==============================
+    // LOGIN INSTRUCTIONS
+    //==============================
+
+    fill(220);
+    textSize(18);
+
+    text(
+        "Enter your 6-character Archive Code below",
+        width / 2,
+        355
+    );
+
+    fill(120);
+    textSize(13);
+
+    text(
+        "Your assigned character and progression will synchronize automatically.",
+        width / 2,
+        382
+    );
+
+     //==============================
+// LOGIN MESSAGE
+//==============================
+
+if (loginMessage !== "") {
+    fill(255, 100, 100);
+    textSize(14);
+    textStyle(BOLD);
+    text(loginMessage, width / 2, 510);
+    textStyle(NORMAL);
+}
+
+    //==============================
+    // BETA LABEL
+    //==============================
+
+    fill(255, 170, 50);
+    textStyle(BOLD);
+    textSize(13);
+
+    text(
+        "BETA TEST BUILD",
+        width / 2,
+        480
+    );
+
+    textStyle(NORMAL);
 }
 
 function startGame() {
     corruption = new CorruptionMap();
     gameState = "GAME";
 }
-// function keyPressed(){
-//     if(key == 'w'){
-//         playerCharacter.move(0, -10);
-//     }
-//     else if(key == 's'){
-//         playerCharacter.move(0, 10);
-//     }
-//     else if(key == 'a'){
-//         playerCharacter.move(-10, 0);
-//     }
-//     else if(key == 'd'){
-//         playerCharacter.move(10, 0);
-//     }
-// }
+
+function drawArenaFloor() {
+
+    //==============================
+    // BASE FLOOR
+    //==============================
+
+    background(75, 80, 88);
+    //==============================
+    // LARGE FLOOR PANELS
+    //==============================
+
+    stroke(62, 67, 74);
+    strokeWeight(1);
+
+    const panelSize = 120;
+
+    for (let x = 0; x < WORLD_WIDTH; x += panelSize) {
+        line(x - cameraX, -cameraY, x - cameraX, WORLD_HEIGHT - cameraY);
+    }
+
+    for (let y = 0; y < WORLD_HEIGHT; y += panelSize) {
+        line(-cameraX, y - cameraY, WORLD_WIDTH - cameraX, y - cameraY);
+    }
+
+    //==============================
+    // ARCHIVE ACCENT LINES
+    //==============================
+
+    stroke(95, 103, 115);
+    strokeWeight(2);
+
+    const centerX = WORLD_WIDTH / 2 - cameraX;
+    const centerY = WORLD_HEIGHT / 2 - cameraY;
+
+    noFill();
+    ellipse(centerX, centerY, 500, 500);
+    ellipse(centerX, centerY, 300, 300);
+
+    line(centerX - 250, centerY, centerX + 250, centerY);
+    line(centerX, centerY - 250, centerX, centerY + 250);
+}

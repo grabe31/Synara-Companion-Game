@@ -24,9 +24,8 @@ class Enemy {
  //==============================
     // HP DISPLAY
     //==============================
-
+    fill(220, 215, 200);
     noStroke();
-    fill(100);
     textSize(10);
     textAlign(CENTER);
     text(round(this.currentHP), screenX, screenY - 42);
