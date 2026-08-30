@@ -9,12 +9,27 @@ class Enemy {
         this.dead = false;
         this.team = "monster";
         this.appearance = new EnemyAppearance(this);
+        this.spawnScale = 0.1;
+        this.spawned = false;
 
 
     }
     resetAttackTimer() {
         this.attackTime = millis();
     }
+
+    updateSpawnScale() {
+    if (this.spawned) {
+        return;
+    }
+
+    this.spawnScale += 0.05;
+
+    if (this.spawnScale >= 1) {
+        this.spawnScale = 1;
+        this.spawned = true;
+    }
+}
 
    display() {
     this.appearance.display();
@@ -54,6 +69,7 @@ class Enemy {
         }
         this.separateFromEnemies();
         this.attackReady = millis() > this.attackTime + this.cooldown;
+        this.updateSpawnScale();
     }
 
     separateFromEnemies() {

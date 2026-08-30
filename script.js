@@ -50,15 +50,16 @@ function setup() {
     rectMode(CENTER);
     textAlign(CENTER);
     angleMode(DEGREES);
+    corruption = new CorruptionMap();
 
-    for (let i = 0; i < 5; i++) {
-       let enemy = new Enemy(random(COLS * TILE_SIZE), random(ROWS * TILE_SIZE), "WS");
-        //enemyArray.push(enemy);
-           let enemy2 = new Enemy(random(COLS * TILE_SIZE), random(ROWS * TILE_SIZE), "RC");
-        // enemyArray.push(enemy2);
-           let enemy3 = new Enemy(random(COLS * TILE_SIZE), random(ROWS * TILE_SIZE), "BT");
-        // enemyArray.push(enemy3);
-    }
+    // for (let i = 0; i < 5; i++) {
+    //    let enemy = new Enemy(random(COLS * TILE_SIZE), random(ROWS * TILE_SIZE), "WS");
+    //     enemyArray.push(enemy);
+    //        let enemy2 = new Enemy(random(COLS * TILE_SIZE), random(ROWS * TILE_SIZE), "RC");
+    //      enemyArray.push(enemy2);
+    //        let enemy3 = new Enemy(random(COLS * TILE_SIZE), random(ROWS * TILE_SIZE), "BT");
+    //      enemyArray.push(enemy3);
+    // }
     codeInput = createInput("t2e7b9");
    // codeInput.attribute("placeholder", "Enter 6-character code");
     codeInput.input(function() {
@@ -73,22 +74,25 @@ function setup() {
 
 function draw() {
     background(30);
+   // console.log(gameState, corruption.coreSealed, enemyArray.length, !corruption.corruptionRemaining)
+    //console.log(enemyArray);
+    checkForWin();
+    
 
     if (gameState === "LOGIN") {
     displayLoginScreen();
     return;
 }
-
-    if (playerCharacter !== undefined) { //player movement
+else if (playerCharacter !== undefined) { //player movement
         updateCamera();
         drawArenaFloor();
         corruption.displayZones();
         corruption.updateCore(playerCharacter);
+        corruption.spawnEnemy();
         fill("white");
         stroke("black");
         textSize(20);
         displayPlayerHP();
-        console.log("Enemies:", enemyArray.length);
         if (keyIsDown(87)) { // W
             playerCharacter.move(0, -playerCharacter.moveSpeed);
         }
@@ -139,6 +143,20 @@ function draw() {
             }
         }
     }
+    else if(gameState == "WIN"){
+        displayWinScreen();
+    }
+    else{
+        text("Game Load Error", windowWidth/2, windowHeight/2);
+    }
+    let playerCol = floor(playerCharacter.x / TILE_SIZE);
+let playerRow = floor(playerCharacter.y / TILE_SIZE);
+let cellValue = corruption.corruptionArray[playerRow][playerCol];
+
+fill(255);
+textSize(14);
+textAlign(LEFT);
+text("Row: " + playerRow + "  Col: " + playerCol + "  Value: " + cellValue, 20, 30);
 }
 
 function updateCamera() {
@@ -287,7 +305,6 @@ function checkLoginCode() {
 
     loginMessage = "";
 
-    console.log("Character found:", matchingRow);
 
     const player = {
     loginCode: matchingRow[0],
@@ -419,9 +436,31 @@ if (loginMessage !== "") {
     textStyle(NORMAL);
 }
 
+function displayWinScreen() {
+    background(20, 24, 30);
+
+    fill(255);
+    textAlign(CENTER);
+    textStyle(BOLD);
+    textSize(42);
+    text("RIFT SEALED", width / 2, 200);
+
+    textStyle(NORMAL);
+    textSize(20);
+    text("The corruption has been contained.", width / 2, 250);
+
+    textSize(16);
+    text("Archive synchronization complete.", width / 2, 290);
+}
+
 function startGame() {
     corruption = new CorruptionMap();
     gameState = "GAME";
+}
+
+function checkForWin() {
+    if (corruption.coreSealed && enemyArray.length === 0 && !corruption.corruptionRemaining()) {
+        gameState = "WIN";    }
 }
 
 function drawArenaFloor() {

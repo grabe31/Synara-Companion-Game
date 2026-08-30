@@ -23,7 +23,6 @@ class Character {
         this.attackType = playerData.attackType;
         //this.attackType = "P";
         this.attackColor = this.getAttackColor();
-        console.log(this.attackType);
 
         this.maxHP = map(this.hp, 0, 99, 20, 120); //units
         this.currentHP = this.maxHP;

@@ -5,11 +5,14 @@ class CorruptionMap {
         this.rows = ROWS;
         this.cols = COLS;
         this.coreScale = 3;
-        this.coreRow = floor(random(ROWS));
-        this.coreCol = floor(random(COLS));
-        this.coreShrinkRate = 0.01;
-        this.coreRegrowRate = 0.004;
-
+        this.coreRow = floor(random(1, ROWS - 1));
+        this.coreCol = floor(random(1, COLS - 1));
+        this.coreScale = 3;
+        this.coreShrinkRate = 0.005;
+        this.coreRegrowRate = 0.002;
+        this.coreSealed = false;
+        this.spawnCooldown = 12000;
+        this.lastSpawnTime = millis();
         this.corruptionArray = [];
         this.spreadList = [ {row: this.coreRow + 1, col: this.coreCol},
                             {row: this.coreRow -1, col: this.coreCol},
@@ -122,62 +125,111 @@ const patternIndex = abs((col * 13 + row * 17) % 8);
         this.corruptionArray[this.coreRow][this.coreCol] = 2;
     }
 
-    cleanseCorruption(player){
-         for(var row = 0; row < this.rows; row++){ //start at 2nd row, 2nd cell and end loop 1 early
-            for(var col = 0; col < this.cols; col++){
-        if(dist(player.x, player.y, col*this.tileSize, row*this.tileSize ) < player.cleanseRadius){
-            this.corruptionArray[row][col] = 0;
-            this.corruptionArray[this.coreRow][this.coreCol] = 2;
+   cleanseCorruption(player) {
+    for (var row = 0; row < this.rows; row++) {
+        for (var col = 0; col < this.cols; col++) {
 
-    }
-         }
+            if (dist(player.x, player.y, col * this.tileSize, row * this.tileSize) < player.cleanseRadius) {
+                this.corruptionArray[row][col] = 0;
+
+                if (!this.coreSealed) {
+                    this.corruptionArray[this.coreRow][this.coreCol] = 2;
+                }
+            }
         }
+    }
+}
+        
+
+    spreadCorruption() {
+
+    this.cleanseCorruption(playerCharacter);
+
+    if (this.coreSealed) {
+        this.corruptionArray[this.coreRow][this.coreCol] = 0;
+        return;
+    }
+
+   for (let location of this.spreadList) {
+    this.corruptionArray[location.row][location.col] = 1;
+}
+    this.corruptionArray[this.coreRow][this.coreCol] = 2;
+
     
+
+    this.spreadList = [];
+
+    if (this.buildCorruptionArray.length == 0 && enemyArray.length > 0) {
+        this.spreadList = [
+            {row: this.coreRow + 1, col: this.coreCol},
+            {row: this.coreRow - 1, col: this.coreCol},
+            {row: this.coreRow, col: this.coreCol + 1},
+            {row: this.coreRow, col: this.coreCol - 1}
+        ];
+    }
+
+    for (var row = 1; row < this.rows - 1; row++) {
+        for (var col = 1; col < this.cols - 1; col++) {
+            if (this.corruptionArray[row][col] == 1 && random(0, 1) > 0.75) {
+                let dir = floor(random(1, 5));
+
+                if (dir == 1) {
+                    this.spreadList.push({row: row + 1, col: col});
+                }
+                else if (dir == 2) {
+                    this.spreadList.push({row: row, col: col - 1});
+                }
+                else if (dir == 3) {
+                    this.spreadList.push({row: row - 1, col: col});
+                }
+                else if (dir == 4) {
+                    this.spreadList.push({row: row, col: col + 1});
+                }
+            }
+        }
+    }
 }
 
-    spreadCorruption(){
-        for(let location of this.spreadList){
-            this.corruptionArray[location.row][location.col] = 1
-            this.corruptionArray[this.coreRow][this.coreCol] = 2;
-
+corruptionRemaining() {
+    for (let row = 0; row < this.rows; row++) {
+        for (let col = 0; col < this.cols; col++) {
+           if (this.corruptionArray[row][col] > 0) {
+            console.log("Core: ", this.coreRow, this.coreCol)
+    console.log("Corruption remains:", row, col, this.corruptionArray[row][col]);
+    return true;
+}
         }
-
-        this.spreadList = [];
-        this.cleanseCorruption(playerCharacter);
-
-        if(this.buildCorruptionArray.length == 0 && enemyArray.length > 0){
-             this.spreadList = [ {row: this.coreRow + 1, col: this.coreCol},
-                            {row: this.coreRow -1, col: this.coreCol},
-                            {row: this.coreRow, col: this.coreCol+1},
-                            {row: this.coreRow, col: this.coreCol-1}
-             ]
-        }
-
-        for(var row = 1; row < this.rows-1; row++){ //start at 2nd row, 2nd cell and end loop 1 early
-            for(var col = 1; col < this.cols-1; col++){
-                if(this.corruptionArray[row][col] == 1 && random(0, 1) > 0.75){
-                    let dir = floor(random(1,5));
-                    if(dir == 1){
-                        this.spreadList.push({row: row+1, col: col})
-                    }
-                     else if(dir == 2){
-                        this.spreadList.push({row: row, col: col-1})
-                    }
-                     else if(dir == 3){
-                        this.spreadList.push({row: row-1, col: col})
-                    }
-                    else if(dir == 4){
-                        this.spreadList.push({row: row, col: col+1})
-                    }
-
-    }
     }
 
-        }
+    return false;
+}
 
+spawnEnemy() {
+    if (this.coreSealed) {
+        return;
+    }
+
+    if (millis() - this.lastSpawnTime < this.spawnCooldown) {
+        return;
+    }
+
+   let coreX = this.coreCol * this.tileSize + this.tileSize / 2;
+let coreY = this.coreRow * this.tileSize + this.tileSize / 2;
+
+// Small random offset so bugs don't appear at exactly the same point.
+let spawnOffsetX = random(-12, 12);
+let spawnOffsetY = random(-12, 12);
+
+let enemy = new Enemy(coreX + spawnOffsetX, coreY + spawnOffsetY, "RC");
+enemyArray.push(enemy);
+this.coreScale += 0.15;
+this.coreScale = constrain(this.coreScale, 0, 3);
+
+    this.lastSpawnTime = millis();
 }
 
 drawCorruptionCore(cellX, cellY, cellSize) {
+   if(this.coreScale > 0.01){
     push();
 
     let screenX = cellX - cameraX;
@@ -247,25 +299,31 @@ drawCorruptionCore(cellX, cellY, cellSize) {
     line(centerX + cellSize * 0.24, centerY + cellSize * 0.12, centerX + cellSize * 0.48, centerY + cellSize * 0.30);
 
     pop();
+   }
 }
 
 updateCore(player) {
+    if (this.coreSealed) {
+        return;
+    }
+
     let coreX = this.coreCol * this.tileSize + this.tileSize / 2;
     let coreY = this.coreRow * this.tileSize + this.tileSize / 2;
-
     let distance = dist(player.x, player.y, coreX, coreY);
 
-    // Only claim/seal the core after all enemies are gone.
-    if (enemyArray.length === 0) {
-
-        if (distance < player.cleanseRadius) {
-            this.coreScale -= this.coreShrinkRate;
-        } else {
-            this.coreScale += this.coreRegrowRate;
-        }
+    if (distance < player.cleanseRadius) {
+        this.coreScale -= this.coreShrinkRate;
+    } else {
+        this.coreScale += this.coreRegrowRate;
     }
 
     this.coreScale = constrain(this.coreScale, 0, 3);
+
+    if (this.coreScale <= 0) {
+    this.coreScale = 0;
+    this.coreSealed = true;
+    this.corruptionArray[this.coreRow][this.coreCol] = 0;
+}
 }
 
 corruptionPattern0(x, y, s) {

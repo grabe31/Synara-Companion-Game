@@ -10,7 +10,7 @@ display() {
         this.enemy.x - cameraX,
         this.enemy.y - cameraY
     );
-
+    scale(this.enemy.spawnScale);
 
     switch (this.enemy.enemyCode) {
         case "BT":
