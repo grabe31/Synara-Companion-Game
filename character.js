@@ -148,15 +148,33 @@ class Character {
 
     pop();
 }
-    move(dx, dy) {
+   move(dx, dy) {
 
-        this.x += dx;
-        this.y += dy;
-        this.x = constrain(this.x, 0, WORLD_WIDTH);
-        this.y = constrain(this.y, 0, WORLD_HEIGHT);
+    let nextX = this.x + dx;
+    let nextY = this.y + dy;
 
+    nextX = constrain(nextX, this.radius, WORLD_WIDTH - this.radius);
+    nextY = constrain(nextY, this.radius, WORLD_HEIGHT - this.radius);
 
+    for (let obstacle of obstacleArray) {
+        if (this.collidesWithObstacle(nextX, nextY, obstacle)) {
+            return;
+        }
     }
+
+    this.x = nextX;
+    this.y = nextY;
+}
+
+collidesWithObstacle(x, y, obstacle) {
+
+    let closestX = constrain(x, obstacle.x - obstacle.w / 2, obstacle.x + obstacle.w / 2);
+    let closestY = constrain(y, obstacle.y - obstacle.h / 2, obstacle.y + obstacle.h / 2);
+
+    let distance = dist(x, y, closestX, closestY);
+
+    return distance < this.radius;
+}
 
     update() {
         this.attackReady = millis() > this.attackTime + this.attackCoolDown;

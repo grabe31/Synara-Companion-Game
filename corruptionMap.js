@@ -96,9 +96,20 @@ const patternIndex = abs((col * 13 + row * 17) % 8);
             let cellY = row * this.tileSize;
 
             // Corrupted cell.
-            if (corruptionLevel === 1) {
-                this.drawCorruptionCracks(cellX, cellY, this.tileSize, corruptionLevel);
-            }
+           if (corruptionLevel === 1) {
+    this.drawCorruptionCracks(cellX, cellY, this.tileSize, corruptionLevel);
+
+    // TEMP DEBUG MARKER
+    push();
+    fill(255, 255, 0);
+    noStroke();
+    circle(
+        cellX - cameraX + this.tileSize / 2,
+        cellY - cameraY + this.tileSize / 2,
+        8
+    );
+    pop();
+}
 
             // Core cell — leave temporary visualization for now.
             if (corruptionLevel === 2) {
@@ -126,10 +137,13 @@ const patternIndex = abs((col * 13 + row * 17) % 8);
     }
 
    cleanseCorruption(player) {
-    for (var row = 0; row < this.rows; row++) {
-        for (var col = 0; col < this.cols; col++) {
+    for (let row = 0; row < this.rows; row++) {
+        for (let col = 0; col < this.cols; col++) {
 
-            if (dist(player.x, player.y, col * this.tileSize, row * this.tileSize) < player.cleanseRadius) {
+            let cellX = col * this.tileSize + this.tileSize / 2;
+            let cellY = row * this.tileSize + this.tileSize / 2;
+
+            if (dist(player.x, player.y, cellX, cellY) < player.cleanseRadius) {
                 this.corruptionArray[row][col] = 0;
 
                 if (!this.coreSealed) {
@@ -139,54 +153,76 @@ const patternIndex = abs((col * 13 + row * 17) % 8);
         }
     }
 }
-        
+     hasActiveCorruption() {
+    for (let row = 0; row < this.rows; row++) {
+        for (let col = 0; col < this.cols; col++) {
+            if (this.corruptionArray[row][col] == 1) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}   
 
     spreadCorruption() {
 
-    this.cleanseCorruption(playerCharacter);
+    if (!this.coreSealed) {
 
-    if (this.coreSealed) {
-        this.corruptionArray[this.coreRow][this.coreCol] = 0;
-        return;
-    }
+        // Apply pending spread.
+        for (let location of this.spreadList) {
+            this.corruptionArray[location.row][location.col] = 1;
+        }
 
-   for (let location of this.spreadList) {
-    this.corruptionArray[location.row][location.col] = 1;
-}
-    this.corruptionArray[this.coreRow][this.coreCol] = 2;
+        // Keep the open core marked as 2.
+        this.corruptionArray[this.coreRow][this.coreCol] = 2;
 
-    
+        // Clear old spread list.
+        this.spreadList = [];
 
-    this.spreadList = [];
+        // Player can cleanse existing corruption.
+        this.cleanseCorruption(playerCharacter);
 
-    if (this.buildCorruptionArray.length == 0 && enemyArray.length > 0) {
-        this.spreadList = [
-            {row: this.coreRow + 1, col: this.coreCol},
-            {row: this.coreRow - 1, col: this.coreCol},
-            {row: this.coreRow, col: this.coreCol + 1},
-            {row: this.coreRow, col: this.coreCol - 1}
-        ];
-    }
+        // If all corruption was cleansed, reseed from the open core.
+        if (!this.hasActiveCorruption()) {
+            this.spreadList = [
+                {row: this.coreRow + 1, col: this.coreCol},
+                {row: this.coreRow - 1, col: this.coreCol},
+                {row: this.coreRow, col: this.coreCol + 1},
+                {row: this.coreRow, col: this.coreCol - 1}
+            ];
+        }
 
-    for (var row = 1; row < this.rows - 1; row++) {
-        for (var col = 1; col < this.cols - 1; col++) {
-            if (this.corruptionArray[row][col] == 1 && random(0, 1) > 0.75) {
-                let dir = floor(random(1, 5));
+        // Build the next spread list.
+        for (let row = 1; row < this.rows - 1; row++) {
+            for (let col = 1; col < this.cols - 1; col++) {
 
-                if (dir == 1) {
-                    this.spreadList.push({row: row + 1, col: col});
-                }
-                else if (dir == 2) {
-                    this.spreadList.push({row: row, col: col - 1});
-                }
-                else if (dir == 3) {
-                    this.spreadList.push({row: row - 1, col: col});
-                }
-                else if (dir == 4) {
-                    this.spreadList.push({row: row, col: col + 1});
+                if (this.corruptionArray[row][col] == 1 && random(0, 1) > 0.75) {
+                    let dir = floor(random(1, 5));
+
+                    if (dir == 1) {
+                        this.spreadList.push({row: row + 1, col: col});
+                    }
+                    else if (dir == 2) {
+                        this.spreadList.push({row: row, col: col - 1});
+                    }
+                    else if (dir == 3) {
+                        this.spreadList.push({row: row - 1, col: col});
+                    }
+                    else if (dir == 4) {
+                        this.spreadList.push({row: row, col: col + 1});
+                    }
                 }
             }
         }
+
+    } else {
+
+        // Core is sealed. No spreading or reseeding.
+        this.corruptionArray[this.coreRow][this.coreCol] = 0;
+
+        // Existing corruption can still be cleansed.
+        this.cleanseCorruption(playerCharacter);
     }
 }
 

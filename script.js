@@ -5,6 +5,7 @@ let statModifier
 let enemyArray = [];
 let projectileArray = [];
 let characterRows = [];
+let obstacleArray = [];
 let corruption;
 let cameraX = 0;
 let cameraY = 0;
@@ -83,9 +84,15 @@ function draw() {
     displayLoginScreen();
     return;
 }
+else if(gameState == "WIN"){
+        displayWinScreen();
+    }
 else if (playerCharacter !== undefined) { //player movement
         updateCamera();
         drawArenaFloor();
+        for (let obstacle of obstacleArray) {
+    obstacle.display();
+}
         corruption.displayZones();
         corruption.updateCore(playerCharacter);
         corruption.spawnEnemy();
@@ -143,9 +150,7 @@ else if (playerCharacter !== undefined) { //player movement
             }
         }
     }
-    else if(gameState == "WIN"){
-        displayWinScreen();
-    }
+    
     else{
         text("Game Load Error", windowWidth/2, windowHeight/2);
     }
@@ -455,6 +460,13 @@ function displayWinScreen() {
 
 function startGame() {
     corruption = new CorruptionMap();
+
+    obstacleArray = [
+        new Obstacle(700, 600, 250, 80),
+        new Obstacle(1200, 900, 80, 300),
+        new Obstacle(1700, 1300, 300, 80)
+    ];
+
     gameState = "GAME";
 }
 
