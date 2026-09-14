@@ -80,13 +80,20 @@ function draw() {
     checkForWin();
     
 
-    if (gameState === "LOGIN") {
+   if (gameState === "LOGIN") {
     displayLoginScreen();
     return;
 }
-else if(gameState == "WIN"){
-        displayWinScreen();
-    }
+
+if (gameState === "WIN") {
+    displayWinScreen();
+    return;
+}
+
+if (gameState === "LOSS") {
+    displayLossScreen();
+    return;
+}
 else if (playerCharacter !== undefined) { //player movement
         updateCamera();
         drawArenaFloor();
@@ -222,11 +229,7 @@ function calculateDamage(defender, attacker) {
 
 function checkGameOver() {
     if (playerCharacter.currentHP <= 0) {
-        fill(playerCharacter.attackColor);
-        stroke("black");
-        textSize(25);
-        text("You Lose", width / 2, height / 2);
-        noLoop();
+        gameState = "LOSS";
     }
 }
 
@@ -515,4 +518,21 @@ function drawArenaFloor() {
 
     line(centerX - 250, centerY, centerX + 250, centerY);
     line(centerX, centerY - 250, centerX, centerY + 250);
+}
+
+function displayLossScreen() {
+    background(20, 24, 30);
+
+    fill(255);
+    textAlign(CENTER);
+    textStyle(BOLD);
+    textSize(42);
+    text("ARCHIVE CONNECTION LOST", width / 2, 200);
+
+    textStyle(NORMAL);
+    textSize(20);
+    text("The corruption overwhelmed your character.", width / 2, 250);
+
+    textSize(16);
+    text("Synchronization failed.", width / 2, 290);
 }

@@ -240,6 +240,21 @@ corruptionRemaining() {
     return false;
 }
 
+chooseEnemyType() {
+
+    let roll = random(0, 1);
+
+    if (roll < 0.33) {
+        return "RC";
+    }
+    else if (roll < 0.67) {
+        return "WS";
+    }
+    else {
+        return "BT";
+    }
+}
+
 spawnEnemy() {
     if (this.coreSealed) {
         return;
@@ -256,8 +271,8 @@ let coreY = this.coreRow * this.tileSize + this.tileSize / 2;
 let spawnOffsetX = random(-12, 12);
 let spawnOffsetY = random(-12, 12);
 
-let enemy = new Enemy(coreX + spawnOffsetX, coreY + spawnOffsetY, "RC");
-enemyArray.push(enemy);
+let enemyType = this.chooseEnemyType();
+let enemy = new Enemy(coreX + spawnOffsetX, coreY + spawnOffsetY, enemyType);enemyArray.push(enemy);
 this.coreScale += 0.15;
 this.coreScale = constrain(this.coreScale, 0, 3);
 

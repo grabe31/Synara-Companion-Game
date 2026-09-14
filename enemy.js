@@ -11,6 +11,12 @@ class Enemy {
         this.appearance = new EnemyAppearance(this);
         this.spawnScale = 0.1;
         this.spawned = false;
+        this.avoidingObstacle = false;
+        this.avoidAxis = null;
+        this.avoidDirection = 0;
+        this.avoidingObstacle = false;
+        this.currentObstacle = null;
+        this.obstacleClearance = 12;
 
 
     }
@@ -46,31 +52,144 @@ class Enemy {
     text(round(this.currentHP), screenX, screenY - 42);
 
 }
-    update(target) {
-        if (this.currentHP <= 0) {
-            this.dead = true;
+   update(target) {
+    if (this.currentHP <= 0) {
+        this.dead = true;
+    }
+
+    if (!this.dead) {
+        this.moveTowardTarget(target);
+    }
+
+    this.separateFromEnemies();
+    this.attackReady = millis() > this.attackTime + this.cooldown;
+    this.updateSpawnScale();
+}
+
+  moveTowardTarget(target) {
+
+    if (this.avoidingObstacle) {
+        this.avoidObstacle(target);
+        return;
+    }
+
+    let dx = 0;
+    let dy = 0;
+
+    if (this.x < target.x) {
+        dx = this.moveSpeed;
+    }
+    else if (this.x > target.x) {
+        dx = -this.moveSpeed;
+    }
+
+    if (this.y < target.y) {
+        dy = this.moveSpeed;
+    }
+    else if (this.y > target.y) {
+        dy = -this.moveSpeed;
+    }
+
+    let hitX = this.collidesWithObstacle(this.x + dx, this.y);
+    let hitY = this.collidesWithObstacle(this.x, this.y + dy);
+
+    if (!hitX && !hitY) {
+        this.x += dx;
+        this.y += dy;
+        return;
+    }
+
+    this.avoidingObstacle = true;
+    this.avoidDirection = random() < 0.5 ? -1 : 1;
+
+    if (hitX) {
+        this.avoidAxis = "y";
+        this.currentObstacle = hitX;
+    }
+    else if (hitY) {
+        this.avoidAxis = "x";
+        this.currentObstacle = hitY;
+    }
+
+    this.avoidObstacle(target);
+}
+
+avoidObstacle(target) {
+
+    let obstacle = this.currentObstacle;
+
+    if (obstacle == null) {
+        this.avoidingObstacle = false;
+        return;
+    }
+
+    if (this.avoidAxis === "y") {
+
+        let nextY = this.y + this.moveSpeed * this.avoidDirection;
+
+        if (!this.collidesWithObstacle(this.x, nextY)) {
+            this.y = nextY;
+        }
+        else {
+            this.avoidDirection *= -1;
+            return;
         }
 
-        if (!this.dead) {
-            if (this.x < target.x) {
-                this.x = this.x + this.moveSpeed;
-            }
-            else if (this.x > target.x) {
-                this.x = this.x - this.moveSpeed;
-            }
-            if (this.y < target.y) {
-                this.y = this.y + this.moveSpeed;
-            }
-            else if (this.y > target.y) {
-                this.y = this.y - this.moveSpeed;
-            }
-            this.x = constrain(this.x, 0, WORLD_WIDTH);
-            this.y = constrain(this.y, 0, WORLD_HEIGHT);
+        let obstacleTop = obstacle.y - obstacle.h / 2;
+        let obstacleBottom = obstacle.y + obstacle.h / 2;
+
+       let clearedTop = this.y + this.radius + this.obstacleClearance < obstacleTop;
+        let clearedBottom = this.y - this.radius - this.obstacleClearance > obstacleBottom;
+
+        if (clearedTop || clearedBottom) {
+            this.avoidingObstacle = false;
+            this.avoidAxis = null;
+            this.currentObstacle = null;
         }
-        this.separateFromEnemies();
-        this.attackReady = millis() > this.attackTime + this.cooldown;
-        this.updateSpawnScale();
     }
+
+    else if (this.avoidAxis === "x") {
+
+        let nextX = this.x + this.moveSpeed * this.avoidDirection;
+
+        if (!this.collidesWithObstacle(nextX, this.y)) {
+            this.x = nextX;
+        }
+        else {
+            this.avoidDirection *= -1;
+            return;
+        }
+
+        let obstacleLeft = obstacle.x - obstacle.w / 2;
+        let obstacleRight = obstacle.x + obstacle.w / 2;
+
+        let clearedLeft = this.x + this.radius + this.obstacleClearance < obstacleLeft;
+        let clearedRight = this.x - this.radius - this.obstacleClearance > obstacleRight;
+
+        if (clearedLeft || clearedRight) {
+            this.avoidingObstacle = false;
+            this.avoidAxis = null;
+            this.currentObstacle = null;
+        }
+    }
+}
+
+collidesWithObstacle(x, y) {
+
+    for (let obstacle of obstacleArray) {
+
+        let closestX = constrain(x, obstacle.x - obstacle.w / 2, obstacle.x + obstacle.w / 2);
+        let closestY = constrain(y, obstacle.y - obstacle.h / 2, obstacle.y + obstacle.h / 2);
+
+        let distance = dist(x, y, closestX, closestY);
+
+        if (distance < this.radius) {
+            return obstacle;
+        }
+    }
+
+    return null;
+}
 
     separateFromEnemies() {
 
@@ -107,8 +226,16 @@ class Enemy {
             let pushY = dy / distance;
 
             // Each enemy handles half of the separation.
-            this.x += pushX * overlap * 0.5;
-            this.y += pushY * overlap * 0.5;
+           let moveX = pushX * overlap * 0.5;
+let moveY = pushY * overlap * 0.5;
+
+let nextX = this.x + moveX;
+let nextY = this.y + moveY;
+
+if (!this.collidesWithObstacle(nextX, nextY)) {
+    this.x = nextX;
+    this.y = nextY;
+}
         }
     }
 }
