@@ -11,7 +11,6 @@ class Enemy {
         this.appearance = new EnemyAppearance(this);
         this.spawnScale = 0.1;
         this.spawned = false;
-        this.avoidingObstacle = false;
         this.avoidAxis = null;
         this.avoidDirection = 0;
         this.avoidingObstacle = false;

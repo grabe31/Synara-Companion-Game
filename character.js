@@ -8,7 +8,6 @@ class Character {
         this.currentClass = playerData.currentClass;
         this.level = playerData.level;
         this.classCode = playerData.classCode;
-        //this.classCode = "EL";
         this.hp = playerData.hp;
         this.currentXP = playerData.currentXP;
         this.attack = playerData.attack;
@@ -21,7 +20,6 @@ class Character {
         this.w = 48
         this.h = 48
         this.attackType = playerData.attackType;
-        //this.attackType = "P";
         this.attackColor = this.getAttackColor();
 
         this.maxHP = map(this.hp, 0, 99, 20, 120); //units
@@ -31,7 +29,6 @@ class Character {
         this.damageReduction = map(this.defense, 0, 99, 0, 0.5); //fractional
         this.attackCoolDown = map(this.dexterity, 0, 99, 1200, 350); //frames
         this.critChance = map(this.luck, 0, 99, 0.02, 0.30); //fractional
-        this.appearance = new CharacterAppearance(this);
         this.radius = 18;
 
         if (this.attackType == "M") {
@@ -90,10 +87,6 @@ class Character {
 }
 
     
-    resetAttackTimer() {
-        this.attackTime = millis();
-    }
-
 
   displayAttackArc() {
     push();
@@ -218,4 +211,11 @@ collidesWithObstacle(x, y, obstacle) {
             return color(255);
     }
 }
+
+reset() {
+    this.x = ROWS * TILE_SIZE / 2;
+    this.y = COLS * TILE_SIZE / 2;
+    this.currentHP = this.maxHP;
+}
+
 }

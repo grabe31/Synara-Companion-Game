@@ -13,7 +13,9 @@ let gameState = "LOGIN";
 let loginMessage = "";
 let codeInput;
 let loginButton;
+let restartButton;
 let dataLoaded;
+let showInstructions;
 
 const width = 960
 const height = 540
@@ -52,17 +54,10 @@ function setup() {
     textAlign(CENTER);
     angleMode(DEGREES);
     corruption = new CorruptionMap();
-
-    // for (let i = 0; i < 5; i++) {
-    //    let enemy = new Enemy(random(COLS * TILE_SIZE), random(ROWS * TILE_SIZE), "WS");
-    //     enemyArray.push(enemy);
-    //        let enemy2 = new Enemy(random(COLS * TILE_SIZE), random(ROWS * TILE_SIZE), "RC");
-    //      enemyArray.push(enemy2);
-    //        let enemy3 = new Enemy(random(COLS * TILE_SIZE), random(ROWS * TILE_SIZE), "BT");
-    //      enemyArray.push(enemy3);
-    // }
-    codeInput = createInput("t2e7b9");
-   // codeInput.attribute("placeholder", "Enter 6-character code");
+    showInstructions = true;
+   
+   codeInput = createInput("");
+codeInput.attribute("placeholder", "Enter Player Code");
     codeInput.input(function() {
     loginMessage = "";
 });
@@ -71,12 +66,17 @@ function setup() {
 
     loginButton = createButton("Enter Archive");
     loginButton.mousePressed(checkLoginCode);
+    restartButton = createButton("TRY AGAIN");
+restartButton.hide();
+
+restartButton.mousePressed(() => {
+    restartButton.hide();
+    startGame();
+});
 }
 
 function draw() {
     background(30);
-   // console.log(gameState, corruption.coreSealed, enemyArray.length, !corruption.corruptionRemaining)
-    //console.log(enemyArray);
     checkForWin();
     
 
@@ -161,15 +161,14 @@ else if (playerCharacter !== undefined) { //player movement
     else{
         text("Game Load Error", windowWidth/2, windowHeight/2);
     }
-    let playerCol = floor(playerCharacter.x / TILE_SIZE);
-let playerRow = floor(playerCharacter.y / TILE_SIZE);
-let cellValue = corruption.corruptionArray[playerRow][playerCol];
 
-fill(255);
-textSize(14);
-textAlign(LEFT);
-text("Row: " + playerRow + "  Col: " + playerCol + "  Value: " + cellValue, 20, 30);
+
+if (showInstructions) {
+    displayInstructions();
 }
+displayInstructionHint();
+
+} //end draw
 
 function updateCamera() {
     cameraX = playerCharacter.x - width / 2
@@ -215,6 +214,12 @@ function mousePressed() {
             let p = new Projectile(playerCharacter, mouseX, mouseY, playerCharacter.attackColor)
             projectileArray.push(p);
         }
+    }
+}
+
+function keyPressed() {
+    if (key === "h" || key === "H") {
+        showInstructions = !showInstructions;
     }
 }
 
@@ -462,15 +467,21 @@ function displayWinScreen() {
 }
 
 function startGame() {
+
+    restartButton.hide();
+
+    enemyArray = [];
+    projectileArray = [];
+    corruption = null;
+
+    playerCharacter.reset();
+
     corruption = new CorruptionMap();
 
-    obstacleArray = [
-        new Obstacle(700, 600, 250, 80),
-        new Obstacle(1200, 900, 80, 300),
-        new Obstacle(1700, 1300, 300, 80)
-    ];
+   generateObstacles();
 
     gameState = "GAME";
+    showInstructions = true;
 }
 
 function checkForWin() {
@@ -479,47 +490,39 @@ function checkForWin() {
 }
 
 function drawArenaFloor() {
+background(55, 60, 68);
+    let panelSize = 128;
 
-    //==============================
-    // BASE FLOOR
-    //==============================
-
-    background(75, 80, 88);
-    //==============================
-    // LARGE FLOOR PANELS
-    //==============================
-
-    stroke(62, 67, 74);
+stroke(72, 79, 89);
     strokeWeight(1);
 
-    const panelSize = 120;
-
     for (let x = 0; x < WORLD_WIDTH; x += panelSize) {
-        line(x - cameraX, -cameraY, x - cameraX, WORLD_HEIGHT - cameraY);
+        for (let y = 0; y < WORLD_HEIGHT; y += panelSize) {
+
+            let drawX = x - cameraX;
+            let drawY = y - cameraY;
+
+            noFill();
+            rectMode(CORNER);
+            rect(drawX, drawY, panelSize, panelSize);
+
+            // Small broken seam in alternating panels
+            if ((x / panelSize + y / panelSize) % 3 === 0) {
+                line(drawX + panelSize * 0.25, drawY, drawX + panelSize * 0.35, drawY + panelSize * 0.18);
+                line(drawX + panelSize * 0.35, drawY + panelSize * 0.18, drawX + panelSize * 0.28, drawY + panelSize * 0.30);
+            }
+
+            // Occasional Archive marking
+            if ((x / panelSize + y / panelSize) % 7 === 0) {
+                stroke(82, 90, 101);
+                rect(drawX + panelSize / 2 - 5, drawY + panelSize / 2 - 5, 10, 10);
+                stroke(39, 45, 53);
+            }
+        }
     }
 
-    for (let y = 0; y < WORLD_HEIGHT; y += panelSize) {
-        line(-cameraX, y - cameraY, WORLD_WIDTH - cameraX, y - cameraY);
-    }
-
-    //==============================
-    // ARCHIVE ACCENT LINES
-    //==============================
-
-    stroke(95, 103, 115);
-    strokeWeight(2);
-
-    const centerX = WORLD_WIDTH / 2 - cameraX;
-    const centerY = WORLD_HEIGHT / 2 - cameraY;
-
-    noFill();
-    ellipse(centerX, centerY, 500, 500);
-    ellipse(centerX, centerY, 300, 300);
-
-    line(centerX - 250, centerY, centerX + 250, centerY);
-    line(centerX, centerY - 250, centerX, centerY + 250);
+    rectMode(CENTER);
 }
-
 function displayLossScreen() {
     background(20, 24, 30);
 
@@ -535,4 +538,130 @@ function displayLossScreen() {
 
     textSize(16);
     text("Synchronization failed.", width / 2, 290);
+
+restartButton.position(width / 2 - restartButton.size().width / 2 + 225, height / 2 + 60);
+    restartButton.show();
+}
+
+function displayInstructions() {
+    push();
+
+    textAlign(LEFT);
+    fill(255);
+
+    let x = 20;
+    let y = height - 155;
+
+    textStyle(BOLD);
+    textSize(14);
+    text("CONTROLS", x, y);
+
+    textStyle(NORMAL);
+    textSize(12);
+    text("WASD — Move", x, y + 20);
+    text("Mouse — Aim", x, y + 36);
+    text("Click — Attack", x, y + 52);
+
+    textStyle(BOLD);
+    textSize(14);
+    text("OBJECTIVE", x, y + 80);
+
+    textStyle(NORMAL);
+    textSize(12);
+    text("Destroy the bugs.", x, y + 100);
+    text("Stand near corruption to cleanse it.", x, y + 116);
+    text("Stay near the rift to seal it.", x, y + 132);
+    text("Clear all corruption to secure the Archive.", x, y + 148);
+
+    pop();
+}
+
+function displayInstructionHint() {
+    push();
+    textAlign(RIGHT);
+    textStyle(NORMAL);
+    textSize(12);
+    fill(180);
+    text("H — Hide/Show Instructions", width - 15, height - 15);
+    pop();
+}
+
+function generateObstacles() {
+
+    obstacleArray = [];
+
+    let numberOfObstacles = 30;
+    let obstacleSpacing = 40;
+    let attempts = 0;
+    let maxAttempts = 500;
+
+    while (obstacleArray.length < numberOfObstacles && attempts < maxAttempts) {
+
+        attempts++;
+
+        let x = random(150, WORLD_WIDTH - 150);
+        let y = random(150, WORLD_HEIGHT - 150);
+
+        let horizontal = random() < 0.5;
+
+        let w;
+        let h;
+
+        if (horizontal) {
+            w = random(150, 350);
+            h = random(50, 90);
+        }
+        else {
+            w = random(50, 90);
+            h = random(150, 350);
+        }
+
+        let newObstacle = new Obstacle(x, y, w, h);
+
+        if (validObstacleLocation(newObstacle, obstacleSpacing)) {
+            obstacleArray.push(newObstacle);
+        }
+    }
+}
+
+function validObstacleLocation(newObstacle, spacing) {
+
+    for (let obstacle of obstacleArray) {
+
+        let overlapX = abs(newObstacle.x - obstacle.x) < newObstacle.w / 2 + obstacle.w / 2 + spacing;
+        let overlapY = abs(newObstacle.y - obstacle.y) < newObstacle.h / 2 + obstacle.h / 2 + spacing;
+
+        if (overlapX && overlapY) {
+            return false;
+        }
+    }
+
+    let coreX = corruption.coreCol * TILE_SIZE + TILE_SIZE / 2;
+    let coreY = corruption.coreRow * TILE_SIZE + TILE_SIZE / 2;
+
+    let coreClearance = 150;
+
+    let coreInsideX = coreX > newObstacle.x - newObstacle.w / 2 - coreClearance &&
+                      coreX < newObstacle.x + newObstacle.w / 2 + coreClearance;
+
+    let coreInsideY = coreY > newObstacle.y - newObstacle.h / 2 - coreClearance &&
+                      coreY < newObstacle.y + newObstacle.h / 2 + coreClearance;
+
+    if (coreInsideX && coreInsideY) {
+        return false;
+    }
+
+    let playerClearance = 100;
+
+let playerInsideX = playerCharacter.x > newObstacle.x - newObstacle.w / 2 - playerClearance &&
+                    playerCharacter.x < newObstacle.x + newObstacle.w / 2 + playerClearance;
+
+let playerInsideY = playerCharacter.y > newObstacle.y - newObstacle.h / 2 - playerClearance &&
+                    playerCharacter.y < newObstacle.y + newObstacle.h / 2 + playerClearance;
+
+if (playerInsideX && playerInsideY) {
+    return false;
+}
+
+    return true;
 }

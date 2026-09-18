@@ -57,7 +57,7 @@ class StatModifier {
     }
 
     adjustAttackCooldown(character, modifier) {
-        character.attackCooldown *= modifier;
+        character.attackCoolDown *= modifier;
     }
 
     adjustMaxHP(character, modifier) {
@@ -65,7 +65,7 @@ class StatModifier {
     }
 
      adjustAttackRange(character, modifier) {
-        character.range *= modifier;
+        character.attackRange *= modifier;
     }
 
      adjustAttackArc(character, modifier) {

@@ -99,16 +99,7 @@ const patternIndex = abs((col * 13 + row * 17) % 8);
            if (corruptionLevel === 1) {
     this.drawCorruptionCracks(cellX, cellY, this.tileSize, corruptionLevel);
 
-    // TEMP DEBUG MARKER
-    push();
-    fill(255, 255, 0);
-    noStroke();
-    circle(
-        cellX - cameraX + this.tileSize / 2,
-        cellY - cameraY + this.tileSize / 2,
-        8
-    );
-    pop();
+    
 }
 
             // Core cell — leave temporary visualization for now.
@@ -165,14 +156,37 @@ const patternIndex = abs((col * 13 + row * 17) % 8);
     return false;
 }   
 
+isBlockedCell(row, col) {
+
+    let cellX = col * this.tileSize + this.tileSize / 2;
+    let cellY = row * this.tileSize + this.tileSize / 2;
+
+    for (let obstacle of obstacleArray) {
+
+        let insideX = cellX > obstacle.x - obstacle.w / 2 &&
+                      cellX < obstacle.x + obstacle.w / 2;
+
+        let insideY = cellY > obstacle.y - obstacle.h / 2 &&
+                      cellY < obstacle.y + obstacle.h / 2;
+
+        if (insideX && insideY) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
     spreadCorruption() {
 
     if (!this.coreSealed) {
 
         // Apply pending spread.
         for (let location of this.spreadList) {
-            this.corruptionArray[location.row][location.col] = 1;
-        }
+    if (!this.isBlockedCell(location.row, location.col)) {
+        this.corruptionArray[location.row][location.col] = 1;
+    }
+}
 
         // Keep the open core marked as 2.
         this.corruptionArray[this.coreRow][this.coreCol] = 2;
@@ -230,8 +244,6 @@ corruptionRemaining() {
     for (let row = 0; row < this.rows; row++) {
         for (let col = 0; col < this.cols; col++) {
            if (this.corruptionArray[row][col] > 0) {
-            console.log("Core: ", this.coreRow, this.coreCol)
-    console.log("Corruption remains:", row, col, this.corruptionArray[row][col]);
     return true;
 }
         }

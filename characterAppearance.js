@@ -676,17 +676,17 @@ rect(2, 30, 5, 2);
         vertex(-8, -17);
         endShape(CLOSE);
 
-        // Face shadow.
-        fill(skinShadow);
+        // // Face shadow.
+        // fill(skinShadow);
 
-        beginShape();
-        vertex(5, -30);
-        vertex(8, -25);
-        vertex(7, -18);
-        vertex(3, -14);
-        vertex(1, -15);
-        vertex(3, -21);
-        endShape(CLOSE);
+        // beginShape();
+        // vertex(5, -30);
+        // vertex(8, -25);
+        // vertex(7, -18);
+        // vertex(3, -14);
+        // vertex(1, -15);
+        // vertex(3, -21);
+        // endShape(CLOSE);
 
         //==============================
         // HAIR
@@ -1498,7 +1498,7 @@ rect(2, 30, 5, 2);
         push();
 
         translate(-32, 30);
-        rotate(1.02);
+        rotate(degrees(1.02));
 
         fill(saffronDark);
         rectMode(CENTER);
